@@ -4,6 +4,8 @@ const newSiteInput = document.getElementById('newSite');
 const addSiteButton = document.getElementById('addSite');
 const commonSites = document.getElementById('commonSites');
 const blockedCount = document.getElementById('blockedCount');
+const focusTaskInput = document.getElementById('focusTask');
+const saveTaskButton = document.getElementById('saveTask');
 
 // Common sites from background script
 const COMMON_SITES = [
@@ -17,10 +19,10 @@ const COMMON_SITES = [
   { domain: 'amazon.com', name: 'Amazon' }
 ];
 
-// Load blocked sites
-async function loadBlockedSites() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_BLOCKED_SITES' });
-  const blockedSites = response.blockedSites || [];
+// Load blocked sites and focus task
+async function loadData() {
+  const response = await chrome.runtime.sendMessage({ type: 'GET_DATA' });
+  const { blockedSites = [], focusTask = '' } = response;
   
   // Update blocked sites list
   siteList.innerHTML = blockedSites.map(site => `
@@ -40,6 +42,9 @@ async function loadBlockedSites() {
     </label>
   `).join('');
 
+  // Update focus task
+  focusTaskInput.value = focusTask;
+
   // Update blocked count
   blockedCount.textContent = `Sites Blocked: ${blockedSites.length}`;
 
@@ -49,12 +54,21 @@ async function loadBlockedSites() {
 
 // Add event listeners
 function addEventListeners() {
+  // Save focus task
+  saveTaskButton.addEventListener('click', async () => {
+    const focusTask = focusTaskInput.value.trim();
+    await chrome.runtime.sendMessage({ 
+      type: 'UPDATE_FOCUS_TASK', 
+      focusTask 
+    });
+  });
+
   // Add new site
   addSiteButton.addEventListener('click', async () => {
     const domain = newSiteInput.value.trim().toLowerCase();
     if (!domain) return;
 
-    const response = await chrome.runtime.sendMessage({ type: 'GET_BLOCKED_SITES' });
+    const response = await chrome.runtime.sendMessage({ type: 'GET_DATA' });
     const blockedSites = response.blockedSites || [];
     
     if (!blockedSites.some(site => site.domain === domain)) {
@@ -64,7 +78,7 @@ function addEventListeners() {
         sites: blockedSites 
       });
       newSiteInput.value = '';
-      loadBlockedSites();
+      loadData();
     }
   });
 
@@ -72,13 +86,13 @@ function addEventListeners() {
   document.querySelectorAll('.remove-site').forEach(button => {
     button.addEventListener('click', async () => {
       const domain = button.dataset.domain;
-      const response = await chrome.runtime.sendMessage({ type: 'GET_BLOCKED_SITES' });
+      const response = await chrome.runtime.sendMessage({ type: 'GET_DATA' });
       const blockedSites = response.blockedSites.filter(site => site.domain !== domain);
       await chrome.runtime.sendMessage({ 
         type: 'UPDATE_BLOCKED_SITES', 
         sites: blockedSites 
       });
-      loadBlockedSites();
+      loadData();
     });
   });
 
@@ -86,7 +100,7 @@ function addEventListeners() {
   document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
     checkbox.addEventListener('change', async () => {
       const domain = checkbox.dataset.domain;
-      const response = await chrome.runtime.sendMessage({ type: 'GET_BLOCKED_SITES' });
+      const response = await chrome.runtime.sendMessage({ type: 'GET_DATA' });
       let blockedSites = response.blockedSites || [];
 
       if (checkbox.checked) {
@@ -101,10 +115,10 @@ function addEventListeners() {
         type: 'UPDATE_BLOCKED_SITES', 
         sites: blockedSites 
       });
-      loadBlockedSites();
+      loadData();
     });
   });
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', loadBlockedSites); 
+document.addEventListener('DOMContentLoaded', loadData); 

@@ -1296,6 +1296,40 @@ The README is clear and concise while providing all necessary information for bo
 
 ---
 
+_**User**_
+
+I want to specify what I should be concentrating on.  Add a text file to input and save that. Display that text in the focus.html page
+
+---
+
+_**Assistant**_
+
+I'll add a task input feature and display it on the focus page. First, let's update the popup.html to add the task input:
+
+
+---
+
+```diff
+      
+      <main>
++       <div class="task-section">
++         <h2>What should you focus on?</h2>
++         <div class="task-input">
++           <textarea id="focusTask" placeholder="Enter your focus task here..."></textarea>
++           <button id="saveTask" class="btn primary">Save Task</button>
++         </div>
++       </div>
++ 
+        <div class="blocking-section">
+          <h2>Blocked Sites</h2>
+```
+
+---
+
+
+
+---
+
 
 
 ---

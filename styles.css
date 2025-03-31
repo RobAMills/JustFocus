@@ -29,11 +29,28 @@ h2 {
   color: #34495e;
 }
 
-.blocking-section, .common-sites {
+.task-section, .blocking-section, .common-sites {
   background: #f8f9fa;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.task-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
 }
 
 .site-list {

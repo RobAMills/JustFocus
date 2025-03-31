@@ -10,10 +10,10 @@ const COMMON_SITES = [
   { domain: 'amazon.com', name: 'Amazon' }
 ];
 
-// Initialize blocked sites from storage
+// Initialize data from storage
 chrome.runtime.onInstalled.addListener(async () => {
-  const { blockedSites = [] } = await chrome.storage.local.get('blockedSites');
-  await chrome.storage.local.set({ blockedSites });
+  const { blockedSites = [], focusTask = '' } = await chrome.storage.local.get(['blockedSites', 'focusTask']);
+  await chrome.storage.local.set({ blockedSites, focusTask });
   updateBlockingRules(blockedSites);
 });
 
@@ -49,9 +49,12 @@ async function updateBlockingRules(blockedSites) {
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GET_BLOCKED_SITES') {
-    chrome.storage.local.get('blockedSites', (result) => {
-      sendResponse({ blockedSites: result.blockedSites || [] });
+  if (request.type === 'GET_DATA') {
+    chrome.storage.local.get(['blockedSites', 'focusTask'], (result) => {
+      sendResponse({ 
+        blockedSites: result.blockedSites || [],
+        focusTask: result.focusTask || ''
+      });
     });
     return true;
   }
@@ -59,6 +62,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'UPDATE_BLOCKED_SITES') {
     chrome.storage.local.set({ blockedSites: request.sites }, () => {
       updateBlockingRules(request.sites);
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (request.type === 'UPDATE_FOCUS_TASK') {
+    chrome.storage.local.set({ focusTask: request.focusTask }, () => {
       sendResponse({ success: true });
     });
     return true;
